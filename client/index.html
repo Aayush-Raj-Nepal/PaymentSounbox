@@ -40,7 +40,7 @@
           return;
         }
 
-        fetch("https://your-api-url.com/pay", {
+        fetch("https://paymentsounbox.onrender.com/pay", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ amount: parseInt(amount) }),
