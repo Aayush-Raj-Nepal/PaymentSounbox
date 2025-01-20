@@ -36,6 +36,38 @@ app.post("/pay", (req, res) => {
   console.log(`✅ Payment received: Rs. ${amount}`);
   res.json({ message: "Payment successful", transaction });
 });
+// ✅ Replay the latest transaction
+app.get("/replay", (req, res) => {
+  const transactions = JSON.parse(fs.readFileSync(TRANSACTION_FILE));
+  if (transactions.length === 0) {
+    return res.json(0);
+  }
+  res.json(transactions[transactions.length - 1].amount);
+});
+
+// ✅ Get total payments for today
+app.get("/total-today", (req, res) => {
+  const transactions = JSON.parse(fs.readFileSync(TRANSACTION_FILE));
+  const today = new Date().toISOString().split("T")[0];
+
+  let total = transactions
+    .filter((txn) => txn.timestamp.startsWith(today))
+    .reduce((sum, txn) => sum + txn.amount, 0);
+
+  res.json(total);
+});
+
+// ✅ Get total payments for the current month
+app.get("/total-month", (req, res) => {
+  const transactions = JSON.parse(fs.readFileSync(TRANSACTION_FILE));
+  const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+
+  let total = transactions
+    .filter((txn) => txn.timestamp.startsWith(currentMonth))
+    .reduce((sum, txn) => sum + txn.amount, 0);
+
+  res.json(total);
+});
 
 // ✅ Endpoint for ESP32 to check for new transactions
 app.get("/latest", (req, res) => {
