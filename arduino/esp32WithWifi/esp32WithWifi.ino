@@ -10,6 +10,7 @@ const char* ssid = "Hardware_Hackathon-1"; // Change to your WiFi SSID
 const char* password = "hackathon@2025"; // Change to your WiFi Password
 const char* serverURL = "https://paymentsounbox.onrender.com/latest"; // Change to your API endpoint
 
+
 HardwareSerial mySerial(1);  // Use UART1 on ESP32
 DFRobotDFPlayerMini myDFPlayer;
 
@@ -37,25 +38,43 @@ void setup() {
 
 void loop() {
     if (WiFi.status() == WL_CONNECTED) {
-        HTTPClient http;
-        http.begin(serverURL);
-        int httpResponseCode = http.GET();
+    HTTPClient http;
+    http.begin(serverURL);
+    int httpResponseCode = http.GET();
 
-        if (httpResponseCode == 200) {
-            String response = http.getString();
-            Serial.print("Server Response: ");
-            Serial.println(response);
+    if (httpResponseCode == 200) {
+        String response = http.getString();
+        Serial.print("Server Response: ");
+        Serial.println(response);
 
+        // Trim any extra whitespace or newline characters
+        response.trim();
+
+        // Check if response is a valid number
+        bool isValidNumber = true;
+        for (int i = 0; i < response.length(); i++) {
+            if (!isDigit(response[i])) {
+                isValidNumber = false;
+                break;
+            }
+        }
+
+        if (isValidNumber) {
             int amount = response.toInt();
             if (amount > 0) {
                 playAmount(amount);
+            } else {
+                Serial.println("⚠️ Error: Received amount is zero or invalid!");
             }
         } else {
-            Serial.print("Error in HTTP request: ");
-            Serial.println(httpResponseCode);
+            Serial.println("❌ Error: Invalid numeric response from server!");
         }
-        http.end();
+    } else {
+        Serial.print("Error in HTTP request: ");
+        Serial.println(httpResponseCode);
     }
+    http.end();
+}
 
     delay(2000); // Poll every 2 seconds
 }

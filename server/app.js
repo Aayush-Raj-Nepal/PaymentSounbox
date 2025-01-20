@@ -39,24 +39,30 @@ app.post("/pay", (req, res) => {
 
 // ✅ Endpoint for ESP32 to check for new transactions
 app.get("/latest", (req, res) => {
-  const transactions = JSON.parse(fs.readFileSync(TRANSACTION_FILE));
+  console.log("ESP32 requested for latest transaction");
+  try {
+    const transactions = JSON.parse(fs.readFileSync(TRANSACTION_FILE));
 
-  if (transactions.length === 0) {
-    return res.json({ newTransaction: false });
+    if (transactions.length === 0) {
+      return res.status(200).json(0);
+    }
+
+    // ✅ Get the latest transaction
+    let latestTransaction = transactions[transactions.length - 1];
+
+    if (latestTransaction.viewed) {
+      return res.status(200).json(0); // If already viewed, return 0
+    }
+
+    // ✅ Mark as viewed
+    latestTransaction.viewed = true;
+    fs.writeFileSync(TRANSACTION_FILE, JSON.stringify(transactions));
+
+    res.status(200).json(latestTransaction.amount);
+  } catch (error) {
+    console.log(error);
+    return res.status(200).json(0);
   }
-
-  // ✅ Get the latest transaction
-  let latestTransaction = transactions[transactions.length - 1];
-
-  if (latestTransaction.viewed) {
-    return res.json(0); // If already viewed, return 0
-  }
-
-  // ✅ Mark as viewed
-  latestTransaction.viewed = true;
-  fs.writeFileSync(TRANSACTION_FILE, JSON.stringify(transactions));
-
-  res.json(latestTransaction.amount);
 });
 
 app.listen(PORT, () => {
