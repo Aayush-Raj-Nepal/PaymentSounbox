@@ -25,6 +25,7 @@ app.post("/pay", (req, res) => {
     id: Date.now(),
     amount,
     timestamp: new Date().toISOString(),
+    viewed: false, // 🚀 Added flag to track whether ESP32 has seen it
   };
 
   // ✅ Store the transaction
@@ -45,7 +46,16 @@ app.get("/latest", (req, res) => {
   }
 
   // ✅ Get the latest transaction
-  const latestTransaction = transactions[transactions.length - 1];
+  let latestTransaction = transactions[transactions.length - 1];
+
+  if (latestTransaction.viewed) {
+    return res.json(0); // If already viewed, return 0
+  }
+
+  // ✅ Mark as viewed
+  latestTransaction.viewed = true;
+  fs.writeFileSync(TRANSACTION_FILE, JSON.stringify(transactions));
+
   res.json(latestTransaction.amount);
 });
 
