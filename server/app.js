@@ -46,7 +46,7 @@ app.get("/latest", (req, res) => {
 
   // ✅ Get the latest transaction
   const latestTransaction = transactions[transactions.length - 1];
-  res.json({ newTransaction: true, latestTransaction });
+  res.json(latestTransaction.amount);
 });
 
 app.listen(PORT, () => {
